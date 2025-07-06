@@ -1,0 +1,25 @@
+[project]
+name = "dish-project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "alembic>=1.16.2",
+    "asyncpg>=0.30.0",
+    "bcrypt==3.2.2",
+    "fastapi>=0.115.14",
+    "fastapi-cli>=0.0.7",
+    "greenlet>=3.2.3",
+    "jose>=1.0.0",
+    "passlib>=1.7.4",
+    "psycopg2-binary>=2.9.10",
+    "pydantic[email]>=2.10.1",
+    "pydantic-settings>=2.10.1",
+    "python-jose>=3.3.0",
+    "sqlalchemy>=2.0.41",
+    "uvicorn>=0.35.0",
+]
+
+[tool.setuptools.packages.find]
+include = ["apps*"]
