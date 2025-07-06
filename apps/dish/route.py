@@ -1,5 +1,3 @@
-
-
 from apps.dish import models
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,11 +5,13 @@ from apps.user import schema as UserSchema
 from apps.dish import schema
 from apps.user.jwt import get_current_user
 from database import get_db
+from fastapi_limiter.depends import RateLimiter
+from fastapi_redis_cache import cache
 
 
 router = APIRouter(tags=["Dish"],prefix="")
 
-@router.post("/add", response_model=schema.DishCreate)
+@router.post("/add", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def add_dish(dish: schema.DishBase, 
              current_user: UserSchema.User = Depends(get_current_user),
              db: AsyncSession = Depends(get_db)):
@@ -22,10 +22,11 @@ async def add_dish(dish: schema.DishBase,
     dish.created_by = current_user.id
     dish.updated_by = current_user.id
     await dish.save(db=db)
-    dish_schema = schema.DishCreate.model_validate(dish.__dict__)
+    dish_schema = schema.DishResponse.model_validate(dish.__dict__)
     return dish_schema
 
-@router.get("/basic_search", response_model=schema.DishCreate)
+@router.get("/basic_search", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
+@cache(expire=10)
 async def search_dish(name: str, 
                       db: AsyncSession = Depends(get_db),
                       current_user: UserSchema.User = Depends(get_current_user)):
@@ -35,11 +36,12 @@ async def search_dish(name: str,
     dish = await models.Dish.find_by_name(db, name)
     if not dish:
         return {"message": "Dish not found"}
-    dish_schema = schema.DishCreate.model_validate(dish.__dict__)
+    dish_schema = schema.DishResponse.model_validate(dish.__dict__)
     return dish_schema
 
 
-@router.get("/search", response_model=list[schema.DishCreate])
+@router.get("/search", response_model=list[schema.DishResponse],  dependencies=[Depends(RateLimiter(times=20, seconds=60))])
+@cache(expire=10)
 async def fuzzy_search_dish(query: str, 
                             serving_size: int,
                             db: AsyncSession = Depends(get_db),
@@ -54,10 +56,10 @@ async def fuzzy_search_dish(query: str,
     res = []
     for dish in dishes:
         dish.cal_nutrition_per_serving(serving_size=serving_size)
-        res.append(schema.DishCreate.model_validate(dish.__dict__))
+        res.append(schema.DishResponse.model_validate(dish.__dict__))
     return res
 
-@router.delete("/delete/{dish_id}", response_class=dict)
+@router.delete("/delete/{dish_id}", response_class=dict, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def delete_dish(dish_id: int, 
                        db: AsyncSession = Depends(get_db),
                        current_user: UserSchema.User = Depends(get_current_user)):
@@ -69,13 +71,3 @@ async def delete_dish(dish_id: int,
         return {"message": "Dish not found"}
     await dish.delete(db=db)
     return {"message": "Dish deleted successfully"}
-
-@router.patch("/update/{dish_id}", response_model=schema.DishCreate)
-async def update_dish(dish_id: int, 
-                       dish: schema.DishUpdate, 
-                       db: AsyncSession = Depends(get_db),
-                       current_user: UserSchema.User = Depends(get_current_user)):
-    """
-        Update a dish in the menu.
-    """
-    return await models.Dish.update(db, dish_id, dish)

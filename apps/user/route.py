@@ -1,5 +1,7 @@
 
 from fastapi import APIRouter, Depends, Response
+from fastapi_limiter.depends import RateLimiter
+from fastapi_redis_cache import cache
 from typing import Annotated
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +13,7 @@ from apps.user.jwt import set_tokens, get_current_user, SUB
 router = APIRouter(tags=["User"],prefix="/auth")
 
 
-@router.post("/register", response_model=schema.User)
+@router.post("/register", response_model=schema.User, dependencies=[Depends(RateLimiter(times=5, seconds=60))])
 async def register(
     data: schema.UserRegister,
     db: AsyncSession = Depends(get_db),
@@ -32,7 +34,7 @@ async def register(
     user_schema = schema.User.model_validate(user.__dict__)
     return user_schema
 
-@router.post("/login", response_model=schema.UserLoginResponse)
+@router.post("/login", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
 async def login(
     data: schema.UserLogin,
     response: Response,
@@ -49,7 +51,8 @@ async def login(
     return user_schema
 
 
-@router.get("/me", response_model=schema.UserLoginResponse)
+@router.get("/me", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
+@cache(expire=10)
 async def get_me(
     current_user: models.User = Depends(get_current_user),
 ):

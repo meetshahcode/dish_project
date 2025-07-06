@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     algorithm: str
     access_header: str 
     refresh_header: str
+    redis_url: str
     
 
     model_config = SettingsConfigDict(env_file=".env")

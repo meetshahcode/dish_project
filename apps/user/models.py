@@ -19,8 +19,8 @@ class User(Base):
         primary_key=True, index=True, autoincrement=True
     )
     email: Mapped[str] = mapped_column(unique=True, index=True)
-    first_name: Mapped[str]
-    last_name: Mapped[str]
+    first_name: Mapped[str] = mapped_column(nullable=True)
+    last_name: Mapped[str] = mapped_column(nullable=True)
     password: Mapped[str]
     is_active: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(server_default=utcnow())

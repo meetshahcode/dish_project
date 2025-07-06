@@ -19,6 +19,8 @@ dependencies = [
     "python-jose>=3.3.0",
     "sqlalchemy>=2.0.41",
     "uvicorn>=0.35.0",
+    "fastapi-limiter>=0.1.6",
+    "fastapi-redis-cache>=0.2.5",
 ]
 
 [tool.setuptools.packages.find]
