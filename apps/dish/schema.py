@@ -24,6 +24,20 @@ class DishBase(BaseModel):
         if v is None or v <= 0:
             raise InvalidCaloriesException
         return v
+    
+    @field_validator('dish_name')
+    @classmethod
+    def dish_name_must_not_be_empty(cls, v):
+        v = v.strip()
+        if not v or v.strip() == "" or len(v.strip()) == 0:
+            raise InvalidDishNameException
+        if len(v) > 10**5 or len(v) <= 1:
+            raise InvalidDishNameException
+        
+        check_c = v.replace(" ", "")
+        if not check_c.isalpha():
+            raise InvalidDishNameException
+        return v
 
 class DishCreate(DishBase):
     id: int 
@@ -50,7 +64,7 @@ class GetDishRequest(BaseModel):
         v = v.strip()
         if not v or v.strip() == "" or len(v.strip()) == 0:
             raise InvalidDishNameException
-        if len(v) > 10**5:
+        if len(v) > 10**5 or len(v) <= 1:
             raise InvalidDishNameException
         
         check_c = v.replace(" ", "")
