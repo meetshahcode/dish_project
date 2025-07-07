@@ -15,7 +15,7 @@ from config import get_settings
 async def startup():
     redis_client = await redis.from_url(get_settings().redis_url, encoding="utf8", decode_responses=True)
     await FastAPILimiter.init(redis_client)
-    await FastApiRedisCache().init(host_url=get_settings().redis_url, prefix="fastapi-cache")
+    FastApiRedisCache().init(host_url=get_settings().redis_url, prefix="fastapi-cache")
 
 from apps.health.route import router as health_router
 app.include_router(health_router)

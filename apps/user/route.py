@@ -34,7 +34,7 @@ async def register(
     user_schema = schema.User.model_validate(user.__dict__)
     return user_schema
 
-@router.post("/login", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.post("/login", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=15, seconds=60))])
 async def login(
     data: schema.UserLogin,
     response: Response,
@@ -51,8 +51,8 @@ async def login(
     return user_schema
 
 
-@router.get("/me", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
-@cache(expire=10)
+@router.get("/me", response_model=schema.UserLoginResponse, dependencies=[Depends(RateLimiter(times=15, seconds=60))])
+@cache(expire=100)
 async def get_me(
     current_user: models.User = Depends(get_current_user),
 ):

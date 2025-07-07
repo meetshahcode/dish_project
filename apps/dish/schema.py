@@ -38,3 +38,33 @@ class DishResponse(DishBase):
     id: int
     created_at: datetime
     updated_at: datetime
+
+
+class GetDishRequest(BaseModel):
+    dish_name: str
+    servings: int
+
+    @field_validator('dish_name')
+    @classmethod
+    def dish_name_must_not_be_empty(cls, v):
+        v = v.strip()
+        if not v or v.strip() == "" or len(v.strip()) == 0:
+            raise ValueError('dish_name must not be empty')
+        if len(v) > 10**5:
+            raise ValueError('dish_name must not exceed 100,000 characters')
+        return v
+
+    @field_validator('servings')
+    @classmethod
+    def servings_must_be_positive(cls, v):
+        if v <= 0:
+            raise ValueError('invalid servings, must be a positive integer')
+        return v
+    
+class GetDishResponse(BaseModel):
+    dish_name: str
+    servings: int
+    calories_per_serving: int
+    carbs_per_serving: Optional[int] = None
+    protein_per_serving: Optional[int] = None
+    fat_per_serving: Optional[int] = None

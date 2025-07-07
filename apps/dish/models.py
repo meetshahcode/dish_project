@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from apps.user.utils import utcnow
+from apps.dish.schema import GetDishResponse
 from sqlalchemy import ForeignKey
 
 class Dish(Base):
@@ -54,3 +55,17 @@ class Dish(Base):
             "protein": str(self.protein * serving_size) + " g",
             "fat": str(self.fat * serving_size) + " g"
         }
+    
+    def toGetDishResponse(self, servings: int) -> GetDishResponse:
+        """
+        Convert the dish to a GetDishResponse format.
+        """
+        self.cal_nutrition_per_serving(servings)
+        return GetDishResponse(
+            dish_name=self.name,
+            servings=servings,
+            calories_per_serving=int(self.calories),
+            carbs_per_serving=int(self.carbs),
+            protein_per_serving=int(self.protein),
+            fat_per_serving=int(self.fat)
+        )

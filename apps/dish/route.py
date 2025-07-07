@@ -11,7 +11,7 @@ from fastapi_redis_cache import cache
 
 router = APIRouter(tags=["Dish"],prefix="")
 
-@router.post("/add", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.post("/add", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=15, seconds=60))])
 async def add_dish(dish: schema.DishBase, 
              current_user: UserSchema.User = Depends(get_current_user),
              db: AsyncSession = Depends(get_db)):
@@ -25,8 +25,8 @@ async def add_dish(dish: schema.DishBase,
     dish_schema = schema.DishResponse.model_validate(dish.__dict__)
     return dish_schema
 
-@router.get("/basic_search", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=20, seconds=60))])
-@cache(expire=10)
+@router.get("/basic_search", response_model=schema.DishResponse, dependencies=[Depends(RateLimiter(times=15, seconds=60))])
+@cache(expire=100)
 async def search_dish(name: str, 
                       db: AsyncSession = Depends(get_db),
                       current_user: UserSchema.User = Depends(get_current_user)):
@@ -40,8 +40,8 @@ async def search_dish(name: str,
     return dish_schema
 
 
-@router.get("/search", response_model=list[schema.DishResponse],  dependencies=[Depends(RateLimiter(times=20, seconds=60))])
-@cache(expire=10)
+@router.get("/search", response_model=list[schema.DishResponse],  dependencies=[Depends(RateLimiter(times=15, seconds=60))])
+@cache(expire=100)
 async def fuzzy_search_dish(query: str, 
                             serving_size: int,
                             db: AsyncSession = Depends(get_db),
@@ -59,7 +59,7 @@ async def fuzzy_search_dish(query: str,
         res.append(schema.DishResponse.model_validate(dish.__dict__))
     return res
 
-@router.delete("/delete/{dish_id}", response_class=dict, dependencies=[Depends(RateLimiter(times=10, seconds=60))])
+@router.delete("/delete/{dish_id}", dependencies=[Depends(RateLimiter(times=15, seconds=60))])
 async def delete_dish(dish_id: int, 
                        db: AsyncSession = Depends(get_db),
                        current_user: UserSchema.User = Depends(get_current_user)):
@@ -71,3 +71,20 @@ async def delete_dish(dish_id: int,
         return {"message": "Dish not found"}
     await dish.delete(db=db)
     return {"message": "Dish deleted successfully"}
+
+@router.post("/get-calories", response_model=list[schema.GetDishResponse],  dependencies=[Depends(RateLimiter(times=15, seconds=60))])
+@cache(expire=100)
+async def get_dish_calories(req: schema.GetDishRequest,
+                            db: AsyncSession = Depends(get_db),
+                            current_user: UserSchema.User = Depends(get_current_user)):
+    """
+        Get the calories for a dish by name.
+    """
+    dishes = await models.Dish.fuzzy_search(db, req.dish_name)
+    if not dishes:
+        return {"message": "Dish not found"}
+    res = []
+    for dish in dishes:
+        res.append(dish.toGetDishResponse(servings=req.servings))
+    print("res", res)
+    return res

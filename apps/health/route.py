@@ -12,7 +12,6 @@ router = APIRouter()
         "content": {"application/json": {"example": {"detail": "Hello World."}}}
     }
 }, dependencies=[Depends(RateLimiter(times=30, seconds=60))])
-@cache(expire=10)
 async def root():
     return {"detail": "Hello World."}
 
@@ -29,6 +28,5 @@ async def root():
              }
          }
          )
-@cache(expire=10)
 async def health():
     return {"detail": get_settings().app_name + " is healthy."}
