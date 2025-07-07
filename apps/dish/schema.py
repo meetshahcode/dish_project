@@ -52,6 +52,10 @@ class GetDishRequest(BaseModel):
             raise InvalidDishNameException
         if len(v) > 10**5:
             raise InvalidDishNameException
+        
+        check_c = v.replace(" ", "")
+        if not check_c.isalpha():
+            raise InvalidDishNameException
         return v
 
     @field_validator('servings')
