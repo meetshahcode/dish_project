@@ -7,6 +7,7 @@ from apps.user.jwt import get_current_user
 from database import get_db
 from fastapi_limiter.depends import RateLimiter
 from fastapi_redis_cache import cache
+from exceptions import DishNotFoundException
 
 
 router = APIRouter(tags=["Dish"],prefix="")
@@ -35,7 +36,7 @@ async def search_dish(name: str,
     """
     dish = await models.Dish.find_by_name(db, name)
     if not dish:
-        return {"message": "Dish not found"}
+        raise DishNotFoundException
     dish_schema = schema.DishResponse.model_validate(dish.__dict__)
     return dish_schema
 
@@ -51,7 +52,7 @@ async def fuzzy_search_dish(query: str,
     """
     dishes = await models.Dish.fuzzy_search(db, query=query)
     if not dishes:
-        return {"message": "No dishes found"}
+        raise DishNotFoundException
     
     res = []
     for dish in dishes:
@@ -68,7 +69,7 @@ async def delete_dish(dish_id: int,
     """
     dish = await models.Dish.find_by_id(db, dish_id)
     if not dish:
-        return {"message": "Dish not found"}
+        raise DishNotFoundException
     await dish.delete(db=db)
     return {"message": "Dish deleted successfully"}
 
@@ -82,7 +83,7 @@ async def get_dish_calories(req: schema.GetDishRequest,
     """
     dishes = await models.Dish.fuzzy_search(db, req.dish_name)
     if not dishes:
-        return {"message": "Dish not found"}
+        raise DishNotFoundException
     res = []
     for dish in dishes:
         res.append(dish.toGetDishResponse(servings=req.servings))

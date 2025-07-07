@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from apps.user.utils import utcnow
 from apps.dish.schema import GetDishResponse
 from sqlalchemy import ForeignKey
+from exceptions import InvalidServingSizeException
 
 class Dish(Base):
     __tablename__ = "dishes"
@@ -48,7 +49,7 @@ class Dish(Base):
         Calculate nutrition values per serving based on the total nutrition and serving size.
         """
         if serving_size <= 0:
-            raise ValueError("Serving size must be greater than zero.")
+            raise InvalidServingSizeException
         return {
             "calories": str(self.calories * serving_size) + " kcal",
             "carbs": str(self.carbs * serving_size) + " g",

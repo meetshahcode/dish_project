@@ -45,6 +45,35 @@ class NotFoundException(HTTPException):
         )
 
 
+class DishNotFoundException(HTTPException):
+    def __init__(self, detail: Any = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=detail if detail else "Dish not found",
+        )
+
+class InvalidServingSizeException(HTTPException):
+    def __init__(self, detail: Any = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=detail if detail else "Invalid serving size",
+        )
+
+class InvalidDishNameException(HTTPException):
+    def __init__(self, detail: Any = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=detail if detail else "Invalid dish name",
+        )
+
+class InvalidCaloriesException(HTTPException):
+    def __init__(self, detail: Any = None) -> None:
+        super().__init__(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=detail if detail else "Invalid calories value",
+        )
+
+
 class ForbiddenException(HTTPException):
     def __init__(self, detail: Any = None) -> None:
         super().__init__(

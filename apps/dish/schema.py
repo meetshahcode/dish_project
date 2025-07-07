@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, field_validator
 from datetime import datetime
 from typing import Optional
-
+from exceptions import InvalidDishNameException, InvalidServingSizeException, InvalidCaloriesException
 class DishBase(BaseModel):
     name: str
     description: Optional[str] = None
@@ -22,7 +22,7 @@ class DishBase(BaseModel):
     @classmethod
     def calories_must_be_positive(cls, v):
         if v is None or v <= 0:
-            raise ValueError('calories must be a positive, non-zero float')
+            raise InvalidCaloriesException
         return v
 
 class DishCreate(DishBase):
@@ -49,16 +49,16 @@ class GetDishRequest(BaseModel):
     def dish_name_must_not_be_empty(cls, v):
         v = v.strip()
         if not v or v.strip() == "" or len(v.strip()) == 0:
-            raise ValueError('dish_name must not be empty')
+            raise InvalidDishNameException
         if len(v) > 10**5:
-            raise ValueError('dish_name must not exceed 100,000 characters')
+            raise InvalidDishNameException
         return v
 
     @field_validator('servings')
     @classmethod
     def servings_must_be_positive(cls, v):
         if v <= 0:
-            raise ValueError('invalid servings, must be a positive integer')
+            raise InvalidServingSizeException
         return v
     
 class GetDishResponse(BaseModel):
